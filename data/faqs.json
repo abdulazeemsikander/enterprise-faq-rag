@@ -1,0 +1,27 @@
+[
+  {
+    "question": "What is the refund policy?",
+    "answer": "Refunds are available within 30 days of purchase, provided the product is unused.",
+    "source": "refund_policy.pdf"
+  },
+  {
+    "question": "How do I reset my password?",
+    "answer": "Go to the login page, click 'Forgot password', and follow the email instructions.",
+    "source": "helpdesk_portal.html"
+  },
+  {
+    "question": "Can I change my shipping address?",
+    "answer": "Yes, you can update your shipping address from the 'My Account' section before order dispatch.",
+    "source": "account_settings.html"
+  },
+  {
+    "question": "Do you offer technical support?",
+    "answer": "Yes, 24/7 technical support is available via chat and email.",
+    "source": "support_policy.pdf"
+  },
+  {
+    "question": "Where can I track my order?",
+    "answer": "You can track your order in the 'Orders' section of your account dashboard.",
+    "source": "orders_page.html"
+  }
+]
