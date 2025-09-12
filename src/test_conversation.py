@@ -1,4 +1,8 @@
+import warnings
+from urllib3.exceptions import NotOpenSSLWarning
+warnings.filterwarnings("ignore", category=NotOpenSSLWarning)
 from src.rag_graph import build_graph
+warnings.filterwarnings("ignore", category=UserWarning)
 
 def run_conversation():
     app = build_graph()
