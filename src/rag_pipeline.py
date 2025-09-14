@@ -1,8 +1,9 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from langchain_huggingface import HuggingFaceEmbeddings, HuggingFacePipeline
-from langchain_community.vectorstores import FAISS
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFacePipeline
+from langchain_community.vectorstores import Chroma
 from transformers import pipeline
 
 load_dotenv()
@@ -11,8 +12,13 @@ INDEX_DIR = Path(__file__).resolve().parent.parent / "var" / "index"
 
 # Load retriever
 def get_retriever():
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    db = FAISS.load_local(str(INDEX_DIR), embeddings, allow_dangerous_deserialization=True)
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
+    db = Chroma(
+        persist_directory=str(INDEX_DIR),
+        embedding_function=embeddings,
+    )
     return db.as_retriever(search_kwargs={"k": 2})
 
 # Load generator (LLM)
@@ -24,7 +30,6 @@ def get_generator():
     )
     return HuggingFacePipeline(pipeline=generator)
 
-
 # Build RAG answer
 def rag_answer(query: str):
     retriever = get_retriever()
@@ -34,8 +39,12 @@ def rag_answer(query: str):
     docs = retriever.get_relevant_documents(query)
 
     # Step 2: Construct context
-    context = "\n".join([f"{i+1}. {doc.page_content} (Source: {doc.metadata.get('source','N/A')})"
-                         for i, doc in enumerate(docs)])
+    context = "\n".join(
+        [
+            f"{i+1}. {doc.page_content} (Source: {doc.metadata.get('source','N/A')})"
+            for i, doc in enumerate(docs)
+        ]
+    )
 
     # Step 3: Build prompt
     prompt = f"""You are an assistant. 
@@ -47,7 +56,7 @@ Context:
 
 Question: {query}
 Answer:"""
-    
+
     result = generator(prompt, max_new_tokens=200)
     # HuggingFace pipeline returns a list of dicts OR a plain string depending on wrapper
     if isinstance(result, list) and "generated_text" in result[0]:
@@ -59,12 +68,13 @@ Answer:"""
 
     return answer, context
 
+
 if __name__ == "__main__":
     questions = [
         "How do I reset my password?",
         "What is the refund policy?",
         "Do you offer technical support?",
-        "Can I change my shipping address?"
+        "Can I change my shipping address?",
     ]
 
     for q in questions:

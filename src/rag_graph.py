@@ -2,20 +2,18 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.llms import HuggingFacePipeline
-from langchain_community.vectorstores import FAISS
+from langchain_huggingface import HuggingFacePipeline
+from langchain_community.vectorstores import Chroma
 from transformers import pipeline
 from langgraph.graph import StateGraph, END
 from typing import TypedDict, List
 from src.memory import ConversationMemory
 import warnings
 
-import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
 # Suppress PyTorch Metal (MPS) backend logs
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "0"
-
 
 load_dotenv()
 
@@ -30,8 +28,13 @@ class ConversationState(TypedDict):
 
 # Retriever
 def retrieve_node(state: ConversationState):
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    db = FAISS.load_local(str(INDEX_DIR), embeddings, allow_dangerous_deserialization=True)
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
+    db = Chroma(
+        persist_directory=str(INDEX_DIR),
+        embedding_function=embeddings,
+    )
     retriever = db.as_retriever(search_kwargs={"k": 2})
 
     docs = retriever.invoke(state["question"])
